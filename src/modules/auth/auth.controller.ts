@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { sendError, sendSuccess } from "../../utilies/response";
+import { sendError, sendSuccess } from "../../utilities/response";
 import { authService } from "./auth.service";
 
 const signup = async (req: Request, res: Response) => {

@@ -1,8 +1,7 @@
 import { pool } from "../../db";
 import bcrypt from "bcrypt";
-import type { TCreateUserInput } from "./auth.types";
+import type { TCreateUserInput, TJwtPayload, TSafeUser } from "./auth.types";
 import jwt from "jsonwebtoken";
-import { resolve } from "node:dns";
 import config from "../../config";
 
 const createUserIntoDB = async (payload: TCreateUserInput) => {
@@ -25,7 +24,7 @@ const createUserIntoDB = async (payload: TCreateUserInput) => {
 const loginUserIntoDB = async (payload: {
   email: string;
   password: string;
-}) => {
+}): Promise<{ token: string; user: TSafeUser }> => {
   const { email, password } = payload;
   const userData = await pool.query(
     `
@@ -36,13 +35,10 @@ const loginUserIntoDB = async (payload: {
 
   const user = userData.rows[0];
   //   console.log(user);
-  if (!user) {
-    throw new Error("Invalid Email");
-  }
 
   const matchPassword = await bcrypt.compare(password, user.password);
-  if (!matchPassword) {
-    throw new Error("Invalid Password");
+  if (!user || !matchPassword) {
+    throw new Error("Invalid Email or Password");
   }
 
   const jwtPayload = {
@@ -50,13 +46,15 @@ const loginUserIntoDB = async (payload: {
     name: user.name,
     email: user.email,
     role: user.role,
-  };
+  } as TJwtPayload;
 
-  const accessToken = jwt.sign(jwtPayload, config.jwt_secret, {
+  const token = jwt.sign(jwtPayload, config.jwt_secret, {
     expiresIn: "7d",
   });
 
-  return { accessToken };
+  delete user.password;
+
+  return { token, user };
 };
 
 export const authService = {
