@@ -13,7 +13,7 @@ export const initDB = async () => {
                 name VARCHAR(100) NOT NULL,
                 email VARCHAR(200) UNIQUE NOT NULL,
                 password TEXT NOT NULL,
-                role VARCHAR(25) NOT NULL DEFAULT 'contributor' CHECK (role IN ('contributor', 'maintainer')),
+                role VARCHAR(25) NOT NULL DEFAULT 'contributor',
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
         )
@@ -24,8 +24,8 @@ export const initDB = async () => {
             id SERIAL PRIMARY KEY,
                 title VARCHAR(150) NOT NULL,
                 description TEXT NOT NULL CHECK (char_length(description) >= 20),
-                type VARCHAR(25) NOT NULL CHECK (type IN ('bug', 'feature_request')),
-                status VARCHAR(25) NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved')),
+                type VARCHAR(25) NOT NULL,
+                status VARCHAR(25) NOT NULL DEFAULT 'open',
                 reporter_id INT NOT NULL,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()

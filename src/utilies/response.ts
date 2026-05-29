@@ -22,6 +22,6 @@ export function sendError<T>(
   res.status(status).json({
     success: false,
     message: message,
-    errors : errors
+    errors: errors 
   });
 }

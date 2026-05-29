@@ -8,9 +8,6 @@ export type TUser = {
   updated_at: Date;
 };
 
-export type TCreateUserInput = Omit<
-  TUser,
-  "id" | "created_at" | "updated_at" | "password"
->;
+export type TCreateUserInput = Omit<TUser, "id" | "created_at" | "updated_at">;
 
 export type TSafeUser = Omit<TUser, "password">;
