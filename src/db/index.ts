@@ -20,13 +20,22 @@ export const initDB = async () => {
                 updated_at TIMESTAMP DEFAULT NOW()
             )
         `);
-  } catch (error) {}
-};
 
-// id	Auto-incrementing unique identifier for each account
-// name	Full display name of the team member, must be provided
-// email	Valid login address, must be unique across all accounts, must be provided
-// password	Encrypted string stored securely, must be provided during registration, never returned in responses
-// role	Determines system access level, defaults to contributor, must be contributor or maintainer
-// created_at	Timestamp marking when the account was created, automatically generated on insert
-// updated_at
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS issues(
+            id SERIAL PRIMARY KEY,
+                title VARCHAR(150) NOT NULL,
+                description TEXT NOT NULL CHECK (char_length(description) >= 20),
+                type VARCHAR(20) NOT NULL CHECK (type IN ('bug', 'feature_request')),
+                status VARCHAR(20) NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved')),
+                reporter_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        `);
+
+    console.log("Database connected successfully");
+  } catch (error) {
+    console.log(error);
+  }
+};
