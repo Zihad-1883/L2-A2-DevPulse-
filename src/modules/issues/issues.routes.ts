@@ -5,5 +5,6 @@ import auth from "../../middleware/auth.middleware";
 const router = Router();
 
 router.post("/", auth, issuesController.createIssues);
+router.get("/" , issuesController.getAllIssues)
 
 export const issueRouter = router;
