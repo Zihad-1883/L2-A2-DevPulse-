@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { sendError, sendSuccess } from "../../utilities/response";
 import { issuesService } from "./issues.service";
+import type { TSafeUser } from "../auth/auth.types";
+import type { TUpdateIssue } from "./issues.types";
 
 const createIssues = async (req: Request, res: Response) => {
   try {
@@ -49,8 +51,27 @@ const getSingleIssue = async (req: Request, res: Response) => {
   }
 };
 
+const updateIssue = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    // console.log(req.user);
+    const issue = await issuesService.updateIssueIntoDB(
+      id as string,
+      req.body as TUpdateIssue,
+      req.user as TSafeUser,
+    );
+    // console.log("controller", issue);
+    sendSuccess(res, "Issue updated successfully", issue, 200);
+  } catch (error) {
+    if (error instanceof Error) {
+      sendError(res, error.message, error, 400);
+    }
+  }
+};
+
 export const issuesController = {
   createIssues,
   getAllIssues,
   getSingleIssue,
+  updateIssue,
 };

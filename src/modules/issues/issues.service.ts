@@ -1,5 +1,7 @@
 import { pool } from "../../db";
-import type { TCreateIssueInput, TIssue } from "./issues.types";
+import { sendError } from "../../utilities/response";
+import type { TSafeUser } from "../auth/auth.types";
+import type { TCreateIssueInput, TIssue, TUpdateIssue } from "./issues.types";
 
 const createIssueIntoDB = async (
   payload: TCreateIssueInput,
@@ -106,8 +108,39 @@ const getSingleIssueFromDB = async (id: string) => {
   };
 };
 
+const updateIssueIntoDB = async (
+  id: string,
+  payload: TUpdateIssue,
+  user: TSafeUser,
+) => {
+  const { title, description, type } = payload;
+  const { role, id: userId } = user;
+  // console.log(payload);
+  const updatedIssue = await pool.query(
+    `
+    UPDATE issues SET title=$1 , description=$2 , type=$3
+    WHERE id=$4 RETURNING *
+    `,
+    [title, description, type, id],
+  );
+  if (updatedIssue.rows.length === 0) {
+    throw new Error("Issue Not Found");
+  }
+  if (role === "contributor") {
+    if (updatedIssue.rows[0].reporter_id !== userId) {
+      throw new Error("You can only update your own issues");
+    }
+    if (updatedIssue.rows[0].status !== "open") {
+      throw new Error("You can only update open issues");
+    }
+  }
+  // console.log(updatedIssue.rows[0])
+  return updatedIssue.rows[0];
+};
+
 export const issuesService = {
   createIssueIntoDB,
   getIssuesFromDB,
   getSingleIssueFromDB,
+  updateIssueIntoDB,
 };

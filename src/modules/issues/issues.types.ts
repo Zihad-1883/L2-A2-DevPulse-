@@ -14,6 +14,4 @@ export type TCreateIssueInput = Omit<
   "id" | "status" | "created_at" | "updated_at"
 >;
 
-
-
-
+export type TUpdateIssue = Pick<TIssue, "title" | "description" | "type">;
