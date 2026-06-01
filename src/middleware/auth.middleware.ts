@@ -4,8 +4,9 @@ import jwt from "jsonwebtoken";
 import config from "../config";
 import type { TJwtPayload } from "../modules/auth/auth.types";
 import { pool } from "../db";
+import type { TUserRole } from "../types";
 
-const auth = () => {
+const auth = (...role: TUserRole[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.headers.authorization;
@@ -28,15 +29,15 @@ const auth = () => {
       );
 
       if (userData.rowCount === 0) {
-        sendError(res, "User not found", null, 404);
+        return sendError(res, "User not found", null, 404);
       }
 
       const user = userData.rows[0];
       // console.log(user.role);
 
-      // if (user.role === "contributor" && !openIssues) {
-      //   sendError(res, "Issue not found or status didn't match", null, 404);
-      // }
+      if (!role.includes(user.role)) {
+        return sendError(res, "Unauthorized Access", null, 403);
+      }
 
       req.user = decoded;
       next();

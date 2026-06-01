@@ -116,6 +116,18 @@ const updateIssueIntoDB = async (
   const { title, description, type } = payload;
   const { role, id: userId } = user;
   // console.log(payload);
+
+  const selectedIssue = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [id],
+  );
+
+  if (selectedIssue.rowCount === 0) {
+    throw new Error("Issue Not Found");
+  }
+
   const updatedIssue = await pool.query(
     `
     UPDATE issues SET title=$1 , description=$2 , type=$3
@@ -123,9 +135,7 @@ const updateIssueIntoDB = async (
     `,
     [title, description, type, id],
   );
-  if (updatedIssue.rows.length === 0) {
-    throw new Error("Issue Not Found");
-  }
+
   if (role === "contributor") {
     if (updatedIssue.rows[0].reporter_id !== userId) {
       throw new Error("You can only update your own issues");
@@ -138,9 +148,34 @@ const updateIssueIntoDB = async (
   return updatedIssue.rows[0];
 };
 
+const deleteIssueFromDB = async (id: string) => {
+  const selectedIssue = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [id],
+  );
+  // console.log(selectedIssue.rows[0]);
+
+  if (selectedIssue.rowCount === 0) {
+    throw new Error("Issue Not Found");
+  }
+
+  const deleteIssue = await pool.query(
+    `
+    DELETE FROM issues WHERE id=$1
+    `,
+    [id],
+  );
+
+  // console.log(deleteIssue);
+  return deleteIssue.rows[0];
+};
+
 export const issuesService = {
   createIssueIntoDB,
   getIssuesFromDB,
   getSingleIssueFromDB,
   updateIssueIntoDB,
+  deleteIssueFromDB,
 };
