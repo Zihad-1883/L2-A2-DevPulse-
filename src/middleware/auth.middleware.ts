@@ -18,7 +18,7 @@ const auth = (...role: TUserRole[]) => {
 
       const decoded = jwt.verify(
         token as string,
-        config.jwt_secret as string,
+        config.jwt_access_secret as string,
       ) as TJwtPayload;
 
       const userData = await pool.query(

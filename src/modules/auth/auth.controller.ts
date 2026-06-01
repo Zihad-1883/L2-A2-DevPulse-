@@ -6,10 +6,15 @@ const signup = async (req: Request, res: Response) => {
   //   console.log(result.rows[0]);
   try {
     const result = await authService.createUserIntoDB(req.body);
-    sendSuccess(res, "User registered successfully", result.rows[0], 201);
+    return sendSuccess(
+      res,
+      "User registered successfully",
+      result.rows[0],
+      201,
+    );
   } catch (error: unknown) {
     if (error instanceof Error) {
-      sendError(res, error.message, error, 400);
+      return sendError(res, error.message, error, 400);
     }
   }
 };
@@ -17,10 +22,29 @@ const signup = async (req: Request, res: Response) => {
 const login = async (req: Request, res: Response) => {
   try {
     const result = await authService.loginUserIntoDB(req.body);
-    sendSuccess(res, "Login successful", result, 200);
+    const { refreshToken } = result;
+    res.cookie("refresh_token", refreshToken, {
+      secure: false,
+      httpOnly: true,
+      sameSite: "lax",
+    });
+    return sendSuccess(res, "Login successful", result, 200);
   } catch (error) {
     if (error instanceof Error) {
-      sendError(res, error.message, error, 400);
+      return sendError(res, error.message, error, 400);
+    }
+  }
+};
+
+const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const result = await authService.generateRefreshToken(
+      req.cookies.refresh_token,
+    );
+    return sendSuccess(res, "Access token generated", result, 200);
+  } catch (error) {
+    if (error instanceof Error) {
+      return sendError(res, error.message, error, 500);
     }
   }
 };
@@ -28,4 +52,5 @@ const login = async (req: Request, res: Response) => {
 export const authController = {
   signup,
   login,
+  refreshToken,
 };
